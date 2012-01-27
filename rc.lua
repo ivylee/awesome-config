@@ -8,6 +8,7 @@ require("beautiful")
 require("naughty")
 require("obvious.battery")
 require("obvious.volume_alsa")
+require("obvious.temp_info")
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -81,6 +82,10 @@ mytextclock = awful.widget.textclock({ align = "right" })
 -- Create a systray
 mysystray = widget({ type = "systray" })
 
+-- Create a wibox seperater
+mysep = widget({ type = "textbox" })
+mysep.text = "  "
+
 -- Create a wibox for each screen and add it
 mywibox = {}
 mypromptbox = {}
@@ -148,7 +153,11 @@ for s = 1, screen.count() do
             mytaglist[s],
             mypromptbox[s],
             obvious.battery(),
+            mysep,
             obvious.volume_alsa(0,"Master"),
+            mysep,
+            obvious.temp_info(),
+            mysep,
             layout = awful.widget.layout.horizontal.leftright
         },
         mylayoutbox[s],
@@ -216,8 +225,8 @@ globalkeys = awful.util.table.join(
     awful.key({},     "XF86AudioRaiseVolume", function () awful.util.spawn("amixer -q sset Master 2+", false) end),
     awful.key({},     "XF86AudioLowerVolume", function () awful.util.spawn("amixer -q sset Master 2-", false) end),
     -- Application
-    awful.key({ modkey, "Shift"   }, "o",     function () awful.util.spawn("opera-next") end),
-    awful.key({ modkey, "Shift"   }, "f",     function () awful.util.spawn("rox") end),
+    awful.key({ modkey, "Shift"   }, "o",     function () awful.util.spawn("opera") end),
+    awful.key({ modkey,           }, "i",     function () awful.util.spawn("firefox") end),
     awful.key({ modkey, "Shift"   }, "m",     function () awful.util.spawn("sonata") end),
     awful.key({ modkey,           }, "d",     function () awful.util.spawn("/opt/dropbox/dropboxd") end),
     awful.key({ modkey,           }, "g",     function () awful.util.spawn("gsopcast") end),
@@ -234,6 +243,11 @@ globalkeys = awful.util.table.join(
     -- Prompt
     awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
 
+    awful.key({ altkey },           "F12",    function () awful.prompt.run({ prompt = "Web search: " }, mypromptbox[mouse.screen].widget,
+                                              function (command) awful.util.spawn("firefox 'http://yubnub.org/parser/parse?command="..command.."'", false)
+                                                  if tags[mouse.screen][2] then awful.tag.viewonly(tags[mouse.screen][2]) end
+                                              end)
+                                          end),
     awful.key({ modkey }, "x",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
@@ -320,6 +334,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "Pidgin" },
       properties = { tag = tags[1][3] } },
+    { rule = { class = "Skype" },
+      properties = { tag = tags[1][3] } },
     { rule = { class = "feh" },
       properties = { floating = true } },
     { rule = { instance = "opera" },
@@ -327,7 +343,7 @@ awful.rules.rules = {
     { rule = { instance = "chrome"},
       properties = { tag = tags[1][8] } },
     { rule = { class = "Firefox"},
-      properties = { tag = tags[1][8] } },
+      properties = { tag = tags[1][2] } },
     { rule = { instance = "ROX-Filer" },
       properties = { tag = tags[1][4] } },
     { rule = { name = "VirtualBox" }, 
@@ -338,7 +354,7 @@ awful.rules.rules = {
       properties = { tag = tags[1][6] } },
     { rule = { instance = "hotot" },
       properties = { tag = tags[1][9] } },
-    { rule = { instance = "XMathematica" },
+    { rule = { class = "XMathematica" },
       properties = { tag = tags[1][7] } },
 
     -- Set Firefox to always map on tags number 2 of screen 1.
